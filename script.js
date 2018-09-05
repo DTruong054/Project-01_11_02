@@ -1,86 +1,95 @@
 /*  Project 01_11_02
 
     Author: Daniel Truong
-    Date:   9.4.18
+    Date: 8.31.18  
 
     Filename: script.js
 */
 
 "use strict";
-//Global Vars
-var httpRequest = false;
-var entry = "^IXIC";
 
-function getRequestObject() {
+// Global Variable
+var httpRequest = false;
+var entry = "^TXIC";
+
+// Function to create XHR object and request an object
+function getRequestedObject() {
     try {
         httpRequest = new XMLHttpRequest();
     } catch (requestError) {
         return false;
     }
-    alert(httpRequest);
     return httpRequest;
 }
 
-function stopSubmisson(evt) {
-    alert("stopSubmission");
+// Function to stop default submission
+function stopSubmission(evt) {
     if (evt.preventDefault) {
         evt.preventDefault();
-    } else {
+    }
+    else {
         evt.returnValue = false;
     }
+    // Calls getQuote
     getQuote();
 }
 
+// Function to request stop quote data
 function getQuote() {
-    alert("getQuote");
+    console.log("getQuote()");
     if (document.getElementsByTagName("input")[0].value) {
         entry = document.getElementsByTagName("input")[0].value;
     }
     if (!httpRequest) {
-        httpRequest = getRequestObject();
+        httpRequest = getRequestedObject();
     }
+    // Generates Ajax Request
     httpRequest.abort();
     httpRequest.open("get", "StockCheck.php?t=" + entry, true);
     httpRequest.send(null);
+    httpRequest.onreadystatechange = displayData;
     clearTimeout(updateQuote);
     var updateQuote = setTimeout('getQuote()', 10000);
 }
+
+// Function to retrieve data and display it
 function displayData() {
     if (httpRequest.readyState === 4 && httpRequest.status === 200) {
         var stockResults = httpRequest.responseText;
         var stockItems = stockResults.split(/,|\"/);
-        for (let i = stockItems.length - 1; i >= 0; i--) {
+        for (var i = stockItems.length - 1; i >= 0; i--) {
             if (stockItems[i] === "") {
-                stockItems.splice(i,1);
+                stockItems.splice(i, 1);
             }
+            // displays stock symbols
+            document.getElementById("ticker").innerHTML = stockItems[0];
+            document.getElementById("openingPrice").innerHTML = stockItems[6];
+            document.getElementById("lastTrade").innerHTML = stockItems[1];
+            document.getElementById("lastTradeDT").innerHTML = stockItems[2] + ", " + stockItems[3];
+            document.getElementById("change").innerHTML = stockItems[4];
+            document.getElementById("range").innerHTML = (stockItems[8] * 1).toFixed(2) + " &ndash; " + (stockItems[7] * 1).toFixed(2);
+            document.getElementById("volume").innerHTML = (stockItems[9] * 1).toLocaleString();
         }
-        document.getElementById("ticker").innerHTML = stockItems[0];
-
-        document.getElementById("openingPrice").innerHTML = stockItems[6];
-        document.getElementById("lastTrade").innerHTML = stockItems[1];
-        document.getElementById("lastTradeDT").innerHTML = stockItems[2] + ", " + stockItems[3];
-        document.getElementById("change").innerHTML = stockItems[4];
-        document.getElementById("range").innerHTML = (stockItems[8] * 1).toFixed(2) + "&ndash;" + (stockItems[7] * 1).toFixed(2);
-        document.getElementById("volume").innerHTML = (stockItems[9] * 1).toLocaleString();
     }
 }
 
+// Function to "get better style" into stock data
 function formatTable() {
     var rows = document.getElementsByTagName("tr");
-    for (let i = 0; i < rows.length; i++) {
+    for (var i = 0; i < rows.length; i++) {
         rows[i].style.background = "#9FE098";
     }
 }
-httpRequest.onreadystatechange = displayData;
 
-//When the page loads the function getRequestObject would launch.
+// Event handler to load functions on load and on submit
 var form = document.getElementsByTagName("form")[0];
-if (window.addEventListener) {
-    form.addEventListener("submit", stopSubmisson, false);
-    window.addEventListener("load", formatTable, false)
+if (form.addEventListener) {
+    form.addEventListener("submit", stopSubmission, false);
+    window.addEventListener("load", formatTable, false);
     window.addEventListener("load", getQuote, false);
-} else {
-    form.attachEvent("onsubmit", stopSubmisson);
-    window.attachEvent("onload", formatTable)
+}
+else if (form.attachEvent) {
+    form.attachEvent("onsubmit", stopSubmission);
+    window.attachEvent("onload", formatTable);
     window.attachEvent("onload", getQuote);
 }
