@@ -12,7 +12,7 @@
 var httpRequest = false;
 var entry = "^TXIC";
 
-// Function to create XHR object and request an object
+// Create XHR and request an object
 function getRequestedObject() {
     try {
         httpRequest = new XMLHttpRequest();
@@ -22,7 +22,7 @@ function getRequestedObject() {
     return httpRequest;
 }
 
-// Function to stop default submission
+// Stop default submission
 function stopSubmission(evt) {
     if (evt.preventDefault) {
         evt.preventDefault();
@@ -34,7 +34,7 @@ function stopSubmission(evt) {
     getQuote();
 }
 
-// Function to request stop quote data
+// Request stop data
 function getQuote() {
     console.log("getQuote()");
     if (document.getElementsByTagName("input")[0].value) {
@@ -43,7 +43,7 @@ function getQuote() {
     if (!httpRequest) {
         httpRequest = getRequestedObject();
     }
-    // Generates Ajax Request
+    // Generate the ajax request
     httpRequest.abort();
     httpRequest.open("get", "StockCheck.php?t=" + entry, true);
     httpRequest.send(null);
@@ -52,7 +52,7 @@ function getQuote() {
     var updateQuote = setTimeout('getQuote()', 10000);
 }
 
-// Function to retrieve data and display it
+// Retrieve data and show it
 function displayData() {
     if (httpRequest.readyState === 4 && httpRequest.status === 200) {
         var stockResults = httpRequest.responseText;
@@ -73,7 +73,7 @@ function displayData() {
     }
 }
 
-// Function to "get better style" into stock data
+// Get style in stock data
 function formatTable() {
     var rows = document.getElementsByTagName("tr");
     for (var i = 0; i < rows.length; i++) {
@@ -81,7 +81,7 @@ function formatTable() {
     }
 }
 
-// Event handler to load functions on load and on submit
+// Event handlers
 var form = document.getElementsByTagName("form")[0];
 if (form.addEventListener) {
     form.addEventListener("submit", stopSubmission, false);
