@@ -10,7 +10,7 @@
 
 // Global Variable
 var httpRequest = false;
-var entry = "^TXIC";
+var entry = "MSFT";
 
 // Create XHR and request an object
 function getRequestedObject() {
@@ -26,8 +26,7 @@ function getRequestedObject() {
 function stopSubmission(evt) {
     if (evt.preventDefault) {
         evt.preventDefault();
-    }
-    else {
+    } else {
         evt.returnValue = false;
     }
     // Calls getQuote
@@ -36,9 +35,11 @@ function stopSubmission(evt) {
 
 // Request stop data
 function getQuote() {
-    console.log("getQuote()");
+    // console.log("getQuote()");
     if (document.getElementsByTagName("input")[0].value) {
         entry = document.getElementsByTagName("input")[0].value;
+    } else {
+        document.getElementsByTagName("input")[0].value = entry;
     }
     if (!httpRequest) {
         httpRequest = getRequestedObject();
@@ -56,20 +57,17 @@ function getQuote() {
 function displayData() {
     if (httpRequest.readyState === 4 && httpRequest.status === 200) {
         var stockResults = httpRequest.responseText;
-        var stockItems = stockResults.split(/,|\"/);
-        for (var i = stockItems.length - 1; i >= 0; i--) {
-            if (stockItems[i] === "") {
-                stockItems.splice(i, 1);
-            }
-            // displays stock symbols
-            document.getElementById("ticker").innerHTML = stockItems[0];
-            document.getElementById("openingPrice").innerHTML = stockItems[6];
-            document.getElementById("lastTrade").innerHTML = stockItems[1];
-            document.getElementById("lastTradeDT").innerHTML = stockItems[2] + ", " + stockItems[3];
-            document.getElementById("change").innerHTML = stockItems[4];
-            document.getElementById("range").innerHTML = (stockItems[8] * 1).toFixed(2) + " &ndash; " + (stockItems[7] * 1).toFixed(2);
-            document.getElementById("volume").innerHTML = (stockItems[9] * 1).toLocaleString();
-        }
+        var stockItems = JSON.parse(stockResults);
+        console.log(stockItems);
+        // Displays stock symbols
+        document.getElementById("ticker").innerHTML = stockItems.symbol;
+        document.getElementById("openingPrice").innerHTML = stockItems.open;
+        document.getElementById("lastTrade").innerHTML = stockItems.latestPrice;
+        var date = new Date(stockItems.latestUpdate);
+        document.getElementById("lastTradeDT").innerHTML = date.toDateString() + "<br>" + date.toLocaleTimeString();
+        document.getElementById("change").innerHTML = (stockItems.latestPrice - stockItems.open).toFixed(2);
+        document.getElementById("range").innerHTML = "Low " + (stockItems.low * 1).toFixed(2) + "<br>High " + (stockItems.high * 1).toFixed(2);
+        document.getElementById("volume").innerHTML = (stockItems.latestVolume * 1).toLocaleString();
     }
 }
 
@@ -87,8 +85,7 @@ if (form.addEventListener) {
     form.addEventListener("submit", stopSubmission, false);
     window.addEventListener("load", formatTable, false);
     window.addEventListener("load", getQuote, false);
-}
-else if (form.attachEvent) {
+} else if (form.attachEvent) {
     form.attachEvent("onsubmit", stopSubmission);
     window.attachEvent("onload", formatTable);
     window.attachEvent("onload", getQuote);
